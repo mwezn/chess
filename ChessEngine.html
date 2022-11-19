@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      .rightDiv{
+        position: relative;
+        right:0;
+        border: 3px solid green;
+      }
+      .container {
+        height: 90vh;
+        margin: 2rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr ;
+        grid-template-rows: 1fr 1fr ;
+      }
+
+    </style>
+    <meta charset="utf-8">
+    <title>Chess</title>
+    <link rel="stylesheet" href="chessboard/chessboardjs-1.0.0/css/chessboard-1.0.0.min.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="chessboard/chessboardjs-1.0.0/js/chessboard-1.0.0.min.js"></script>
+    <script src="chess.js"></script>
+  </head>
+  <body>
+    <div class="container">
+    <div id="board1" class="board" style="width: 400px"></div>
+    <div class="rightDiv">
+     <p id="moves"></p>
+    </div>
+    <div id="captured1"></div>
+    <div id="captured2"></div>
+    </div>
+    <script>
+       var board = null
+       var game = new Chess()
+       function possibleMove(){
+         return game.moves({verbose:true});
+       }
+       function onDragStart (source, piece, position, orientation) {
+          if (game.game_over()) return false
+
+          if (piece.search(/^b/) !== -1) return false
+        }
+
+/* THIS NEEDS IMPLEMENTING FOR CPU/AI GAMES!
+      function miniMax(){
+      
+      } */
+
+      function makeRandomMove () {
+        var b=document.getElementById("captured2");
+        var possibleMoves = game.moves()
+        var N=document.getElementById("moves");
+        N.innerHTML+=`${possibleMoves}`+'<br>';
+        //console.log(possibleMoves);
+        if (possibleMoves.length === 0) return
+        var randomIdx = Math.floor(Math.random() * possibleMoves.length)
+        var move=game.move(possibleMoves[randomIdx])
+        board.position(game.fen())
+        console.log(move)
+        if(move.captured){
+          b.innerHTML+=`${move.color} captured a ${move.captured} <br>`;
+        }
+
+      }
+    
+function onDrop (source,target) {
+  // see if the move is legal
+  var w=document.getElementById("captured1");
+  
+  console.log(possibleMove());
+  var move = game.move({
+    from: source,
+    to: target,
+    promotion: 'q', // NOTE: always promote to a queen for example simplicity
+  })
+  console.log(move,possibleMove(),move.color);
+  //var opp=(move.color=="w")?"b":"w";
+  if(move.captured){
+    w.innerHTML+=`${move.color} captured a ${move.captured} <br>`;
+  }
+
+
+  // illegal move
+  if (move === null) return 'snapback'
+
+  // make random legal move for black
+  window.setTimeout(makeRandomMove, 250)
+}
+
+// update the board position after the piece snap
+// for castling, en passant, pawn promotion
+function onSnapEnd () {
+  board.position(game.fen())
+  
+}
+
+var config = {
+  draggable: true,
+  position: 'start',
+  onDragStart: onDragStart,
+  onDrop: onDrop,
+  onSnapEnd: onSnapEnd
+}
+board = Chessboard('board1', config)
+    </script>
+  </body>
+</html>
